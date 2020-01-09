@@ -28,12 +28,6 @@
             .main .right-panel {
             }
 
-        .btn-generate {
-            color: #fff;
-            background-color: #5bc0de;
-            border-color: #46b8da;
-        }
-
         #modal-tip .modal-body .highlight {
             color: #d43f3a;
         }
@@ -65,7 +59,8 @@
                         <label>表名称</label>
                         <div class="input-group">
                             <input type="text" class="form-control" id="table" placeholder="请输入表名称">
-                            <span class="input-group-addon btn btn-info btn-generate" id="generate">生成</span>
+                            <span class="input-group-addon btn btn-info" id="generate">生成</span>
+                            <span class="input-group-addon btn btn-success" id="generate2">生成cs文件</span>
                         </div>
                     </div>
                 </div>
@@ -79,6 +74,7 @@
                                     <i class="glyphicon glyphicon-duplicate"></i> 选择模板 <span class="caret"></span>
                                 </button>
                                 <ul class="dropdown-menu">
+                                    <li><a href="javascript:;" id="sqlinsert">insert语句</a></li>
                                     <li><a href="javascript:;" id="sqlmapper">SqlMapper映射</a></li>
                                     <li><a href="javascript:;" id="entitymapper">C#实体对象</a></li>
                                     <li role="separator" class="divider"></li>
@@ -118,6 +114,9 @@
             </div>
         </div>
     </div>
+    <pre id="demo-sql-insert">
+    insert into [table] (<%[column],%>)values(<%:[property],%>)
+    </pre>
     <pre id="demo-sql-mapper">
 &lt;?xml version="1.0" encoding="utf-8" ?&gt;
     &lt;sqlMap namespace="[class]Map" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
@@ -131,9 +130,9 @@
     &lt;/resultMaps&gt;
     &lt;statements&gt;
         &lt;select id="Select[class]" parameterClass="string" resultMap="[class]Result"&gt;
-            SELECT &lt;%[column],%&gt;
-            FROM [table]
-            WHERE 1=1
+            select &lt;%[column],%&gt;
+            from [table]
+            where 1=1
             &lt;dynamic&gt;
                 &lt;isNotEmpty prepend="AND"&gt;
                     N_[table]_ID = #value#
@@ -142,25 +141,24 @@
         &lt;/select&gt;
         &lt;insert id="Insert[class]" parameterClass="[class]"&gt;
             &lt;selectKey resultClass="long" type="pre" property="N[property]Id"&gt;
-                SELECT SEQ_[table]_ID.NEXTVAL AS VALUE FROM DUAL
+                select SEQ_[table]_ID.nextval as VALUE from dual
             &lt;/selectKey&gt;
-            INSERT INTO [table]
-            (&lt;%[column],%&gt;)VALUES(&lt;%#[property]#,%&gt;)
+            insert into [table]
+            (&lt;%[column],%&gt;)values(&lt;%#[property]#,%&gt;)
         &lt;/insert&gt;
         &lt;update id="Update[class]" parameterClass="[class]"&gt;
-            UPDATE [table]
-            SET &lt;%[column]=#[property]#,%&gt;
-            WHERE N_[table]_ID = #N[class]Id#
+            update [table]
+            set &lt;%[column]=#[property]#,%&gt;
+            where N_[table]_ID = #N[class]Id#
         &lt;/update&gt;
         &lt;delete id="Delete[class]" parameterClass="string"&gt;
-            DELETE FROM [table] WHERE N_[table]_ID = #value#
+            delete from [table] where N_[table]_ID = #value#
         &lt;/delete&gt;
     &lt;/statements&gt;
 &lt;/sqlMap&gt;
     </pre>
     <pre id="demo-entity-mapper">
 using AutoMapper;
-using BJCA.PERMS.Domain.Dictionaries.Entities;
 using BJCA.PERMS.Infrastructure.AutoMapper;
 using Dapper.Contrib.Extensions;
 using System;
@@ -170,13 +168,22 @@ namespace BJCA.PERMS.Repository.Models
     /// &lt;summary&gt;
     /// [table-comment]
     /// &lt;/summary&gt;
-    public class [table]
+    [Table("[table]")]
+    public class [table] : IHaveCustomMapping
     {
 <%
         /// &lt;summary&gt;
         /// [column-comment]
         /// &lt;/summary&gt;
         public [column-type] [column] { get; set; }%>
+
+        public void CreateMappings(Profile configuration)
+        {
+            //configuration.CreateMap<po, @@do>()
+            //    .ForMember(@@do => @@do.Id, opt => opt.MapFrom(po => po.Id))
+            //    .ReverseMap()
+            //    .ForAllOtherMembers(opts => opts.Ignore());
+        }
     }
 }
     </pre>
@@ -186,6 +193,21 @@ namespace BJCA.PERMS.Repository.Models
 </html>
 <script>
     $("#generate").click(function () {
+        $.ajax({
+            url: "/Home/Generate",
+            type: "post",
+            data: {
+                table: $("#table").val(),
+                template: $("#template").val(),
+                conn: $("#conn").val(),
+                type: "oracle"
+            },
+            success: function (res) {
+                $("#res").val(res)
+            }
+        })
+    });
+    $("#generate2").click(function () {
         $.ajax({
             url: "/Home/GenerateCodeFile",
             type: "post",
@@ -199,6 +221,9 @@ namespace BJCA.PERMS.Repository.Models
                 $("#res").val(res)
             }
         })
+    });
+    $("#sqlinsert").click(function () {
+        $("#template").val($("#demo-sql-insert").text())
     });
     $("#sqlmapper").click(function () {
         $("#template").val($("#demo-sql-mapper").text())
