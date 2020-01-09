@@ -115,7 +115,10 @@
         </div>
     </div>
     <pre id="demo-sql-insert">
-    insert into [table] (<%[column],%>)values(<%:[property],%>)
+insert into [table] (
+<%  [column],%>)
+values(
+<%  :[column],%>)
     </pre>
     <pre id="demo-sql-mapper">
 &lt;?xml version="1.0" encoding="utf-8" ?&gt;
