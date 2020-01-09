@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace DB2TemplateGenerator.Common
+﻿namespace DB2TemplateGenerator.Common
 {
     public static class StringExtensions
     {
@@ -43,6 +38,16 @@ namespace DB2TemplateGenerator.Common
                 entityStr = initStr + entityStr;
             }
             return entityStr;
+        }
+
+        public static string OracleToNormalType(this string oracleType)
+        {
+            switch (oracleType)
+            {
+                case "NUMBER": return "long";
+                case "DATE": return "DateTime";
+                default: return "string";
+            }
         }
     }
 }
