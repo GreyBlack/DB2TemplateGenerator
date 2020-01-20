@@ -8,7 +8,7 @@ namespace DB2TemplateGenerator.DBHandler
 {
     public interface IDBHandler
     {
-        List<TableInfo> QueryTables(string connStr, string userName = "MEDICALUSER");
-        List<ColumnInfo> QueryTableColumns(string connStr, string tableName, string userName = "MEDICALUSER");
+        List<TableInfo> GetTableInfos(string connStr, string tableName = null);
+        List<ColumnInfo> GetTableColumnInfos(string connStr, string tableName, string userName);
     }
 }

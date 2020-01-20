@@ -1,0 +1,182 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DB模板生成器</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="wrapper" id="app" v-cloak>
+        <div class="main row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label>DB类型</label>
+                    <select class="form-control" v-model="currnetDbType">
+                        <option v-bind:value="type" v-for="type in dbTypeList">{{type}}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>连接字符串</label>
+                    <textarea id="conn" class="form-control" rows="2" v-model="conn"></textarea>
+                </div>
+                <div class="form-group">
+                    <div class="template-header">
+                        <label>模板内容<span style="color:dodgerblue">&nbsp;&nbsp;（当前模板：{{currentTemplate.name||'未选择'}}）</span></label>
+                        <div class="pull-right btn-group">
+                            <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modal-tip"><i class="glyphicon glyphicon-info-sign"></i> 使用规则</button>
+                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="glyphicon glyphicon-duplicate"></i> 选择模板 <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li v-for="temp in templateList"><a v-on:click="chooseTemplate(temp)">{{temp.name}}(.{{temp.type}})</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <textarea class="form-control" rows="10" v-model="currentTemplate.content"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>表名称</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="请输入表名称" v-model="tableName" />
+                        <span class="input-group-addon btn btn-info" v-on:click="generateContent()">生成文本</span>
+                        <span class="input-group-addon btn btn-success" v-on:click="generateFile()">生成文件</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-md-12">
+                <label>返回结果</label>
+                <textarea id="res" class="form-control" rows="15" v-model="resultContent"></textarea>
+            </div>
+            <div class="modal fade" tabindex="-1" role="dialog" id="modal-tip">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">模板规则</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p>1.循环表内所有字段，使用<span class="highlight"> <% %> </span>标记循环起止位置</p>
+                            <p>2.数据库表名称使用<span class="highlight"> [table] </span>占位，映射类名称使用<span class="highlight"> [class] </span>占位</p>
+                            <p>3.数据库表注释（类注释）使用<span class="highlight"> [table-comment] </span>占位</p>
+                            <p>4.数据库字段名称使用<span class="highlight"> [column] </span>占位，映射类属性名称使用<span class="highlight"> [property] </span>占位</p>
+                            <p>5.数据库字段注释（类属性注释）使用<span class="highlight"> [column-comment] </span>占位</p>
+                            <p>6.数据库字段类型使用<span class="highlight"> [column-type] </span>占位，映射类属性类型使用<span class="highlight"> [property-type] </span>占位</p>
+                            <p>7.数据库主键使用<span class="highlight"> [key] </span>占位</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <pre id="oralce-sql-insert">
+insert into [table] (
+<%  [column],%>)
+values(
+<%  :[column],%>)</pre>
+        <pre id="xml-mapper">
+&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+    &lt;sqlMap namespace="[class]Map" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+    &lt;alias&gt;
+        &lt;typeAlias alias="[class]" type="BJCA.TERMS.Domain.Entity.[class]" /&gt;
+    &lt;/alias&gt;
+    &lt;resultMaps&gt;
+        &lt;resultMap id="[class]Result" class="[class]"&gt;
+&lt;%        &lt;result property="[property]" column="[column]"/&gt;%&gt;
+        &lt;/resultMap&gt;
+    &lt;/resultMaps&gt;
+    &lt;statements&gt;
+        &lt;select id="Select[class]" parameterClass="string" resultMap="[class]Result"&gt;
+            select 
+&lt;%               [column],%&gt;
+            from [table]
+            where 1=1
+            &lt;dynamic&gt;
+                &lt;isNotEmpty prepend="AND"&gt;
+                    N_[table]_ID = #value#
+                &lt;/isNotEmpty&gt;
+            &lt;/dynamic&gt;
+        &lt;/select&gt;
+        &lt;insert id="Insert[class]" parameterClass="[class]"&gt;
+            &lt;selectKey resultClass="long" type="pre" property="[key]"&gt;
+                select SEQ_[table]_ID.nextval as VALUE from dual
+            &lt;/selectKey&gt;
+            insert into [table]
+            (
+&lt;%               [column],%&gt;
+            )
+            values
+            (
+&lt;%               #[property]#,%&gt;
+            )
+        &lt;/insert&gt;
+        &lt;update id="Update[class]" parameterClass="[class]"&gt;
+            update [table]
+            set 
+&lt;%               [column]=#[property]#,%&gt;
+            where N_[table]_ID = #N[class]Id#
+        &lt;/update&gt;
+        &lt;delete id="Delete[class]" parameterClass="string"&gt;
+            delete from [table] where N_[table]_ID = #value#
+        &lt;/delete&gt;
+    &lt;/statements&gt;
+&lt;/sqlMap&gt;</pre>
+        <pre id="cs-entity">
+using System;
+
+namespace BJCA.xxxx.Repository.Models
+{
+    /// &lt;summary&gt;
+    /// [table-comment]
+    /// &lt;/summary&gt;
+    public class [table]
+    {
+<%
+        /// &lt;summary&gt;
+        /// [column-comment]
+        /// &lt;/summary&gt;
+        public [property-type] [property] { get; set; }%>
+    }
+}</pre>
+        <pre id="po-entity">
+using AutoMapper;
+using BJCA.PERMS.Infrastructure.AutoMapper;
+using Dapper.Contrib.Extensions;
+using System;
+
+namespace BJCA.PERMS.Repository.Models
+{
+    /// &lt;summary&gt;
+    /// [table-comment]
+    /// &lt;/summary&gt;
+    [Table("[table]")]
+    public class [table] : IHaveCustomMapping
+    {
+<%
+        /// &lt;summary&gt;
+        /// [column-comment]
+        /// &lt;/summary&gt;
+        public [property-type] [property] { get; set; }%>
+
+        public void CreateMappings(Profile configuration)
+        {
+            //configuration.CreateMap&lt;po, @@do&gt;()
+            //    .ForMember(@@do => @@do.Id, opt => opt.MapFrom(po => po.Id))
+            //    .ReverseMap()
+            //    .ForAllOtherMembers(opts => opts.Ignore());
+        }
+    }
+}</pre>
+    </div>
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="~/lib/vue/vue.js"></script>
+    <script src="~/lib/vue/axios.min.js"></script>
+    <script src="~/js/site.js"></script>
+</body>
+</html>
