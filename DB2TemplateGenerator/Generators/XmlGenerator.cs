@@ -8,15 +8,14 @@ namespace DB2TemplateGenerator.Generators
     /// </summary>
     public class XmlGenerator : BaseGenerator, IFileGenerator
     {
-
         public GenerateFileInfo GenerateFile(TableInfo table, string template)
         {
             return base.GenerateFile(table, template, "application/xml", ".xml");
         }
 
-        public GenerateFileInfo GenerateZip(List<TableInfo> tables, string template)
+        public GenerateFileInfo GenerateZip(List<TableInfo> tables, string template, string fileType)
         {
-            return base.GenerateZip(tables, template, "mappers.zip");
+            return base.GenerateZip(tables, template, fileType, "mappers.zip");
         }
     }
 }

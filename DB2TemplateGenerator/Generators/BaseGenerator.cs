@@ -89,17 +89,17 @@ namespace DB2TemplateGenerator.Generators
         /// </summary>
         /// <param name="tables">表信息</param>
         /// <param name="template">模板字符串</param>
-        /// <param name="contentType">文件类型</param>
+        /// <param name="fileType">文件类型</param>
         /// <param name="zipName">zip名称</param>
         /// <returns></returns>
-        public virtual GenerateFileInfo GenerateZip(List<TableInfo> tables, string template, string zipName)
+        public virtual GenerateFileInfo GenerateZip(List<TableInfo> tables, string template, string fileType, string zipName)
         {
             FileOperator.DeleteDirAllFile(TEMP_FILE_PATH);
             FileOperator.DeleteDirAllFile(TEMP_ZIP_PATH);
             foreach (var table in tables)
             {
                 string resultContent = GenerateContent(table, template);
-                string fileName = table.TableName.ToClassName() + ".cs";
+                string fileName = table.TableName.ToClassName() + "." + fileType;
                 FileOperator.WriteFile(fileName, resultContent, TEMP_FILE_PATH);
             }
             FileOperator.ZipDirectoryFiles(TEMP_FILE_PATH, TEMP_ZIP_PATH, zipName);

@@ -11,12 +11,12 @@ namespace DB2TemplateGenerator.Generators
 
         public GenerateFileInfo GenerateFile(TableInfo table, string template)
         {
-            return base.GenerateFile(table, template, "application/xml", ".sql");
+            return base.GenerateFile(table, template, "application/octet-stream", ".sql");
         }
 
-        public GenerateFileInfo GenerateZip(List<TableInfo> tables, string template)
+        public GenerateFileInfo GenerateZip(List<TableInfo> tables, string template, string fileType)
         {
-            return base.GenerateZip(tables, template, "sqls.zip");
+            return base.GenerateZip(tables, template, fileType, "sqls.zip");
         }
     }
 }

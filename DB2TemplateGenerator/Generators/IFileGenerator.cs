@@ -9,6 +9,6 @@ namespace DB2TemplateGenerator.Generators
     public interface IFileGenerator
     {
         GenerateFileInfo GenerateFile(TableInfo table, string template);
-        GenerateFileInfo GenerateZip(List<TableInfo> tables, string template);
+        GenerateFileInfo GenerateZip(List<TableInfo> tables, string template, string fileType);
     }
 }

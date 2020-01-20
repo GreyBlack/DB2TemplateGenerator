@@ -55,7 +55,7 @@ namespace DB2TemplateGenerator.Controllers
                 if (tables.Count == 1)
                     fileInfo = generator.GenerateFile(tables[0], request.Template);
                 else if (tables.Count > 1)
-                    fileInfo = generator.GenerateZip(tables, request.Template);
+                    fileInfo = generator.GenerateZip(tables, request.Template, request.FileType);
                 if (fileInfo == null) return BadRequest(ResultMessage.Set("文件不存在", false));
                 return File(fileInfo.FileBytes, fileInfo.MimeType, fileInfo.FileName);
             }

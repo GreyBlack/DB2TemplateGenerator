@@ -1,3 +1,6 @@
 obj
 bin
 /.vs
+/DB2TemplateGenerator/*.user
+/DB2TemplateGenerator/Properties/PublishProfiles/*.pubxml
+/DB2TemplateGenerator/Properties/PublishProfiles/*.user
